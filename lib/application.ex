@@ -4,7 +4,7 @@ defmodule MiniOban.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      MiniOban.Queue
+      {MiniOban.Queue, [max_concurrency: 3]}
     ]
 
     opts = [strategy: :one_for_one, name: MiniOban.Supervisor]

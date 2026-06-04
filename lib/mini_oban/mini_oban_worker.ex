@@ -1,18 +1,17 @@
 defmodule MiniOban.Worker do
-  @moduledoc """
-  Documentation for `MiniOban.Worker`.
-  """
+  alias MiniOban.Job
 
-  @doc """
-  Hello world.
+  def perform(%Job{} = job) do
+    duration = :rand.uniform(2000)
+    IO.puts("[Worker] Starting job #{job.id} | type=#{job.type} | attempt=#{job.attempts + 1}/#{job.max_attempts} | will take #{duration}ms")
+    Process.sleep(duration)
 
-  ## Examples
-
-      iex> MiniOban.hello()
-      :world
-
-  """
-  def hello do
-    :world
+    if :rand.uniform(2) == 1 do
+      IO.puts("[Worker] Job #{job.id} succeeded")
+      :ok
+    else
+      IO.puts("[Worker] Job #{job.id} failed")
+      {:error, "random failure"}
+    end
   end
 end
