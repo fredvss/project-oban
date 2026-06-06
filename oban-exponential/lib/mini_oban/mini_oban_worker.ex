@@ -3,7 +3,7 @@ defmodule MiniOban.Worker do
 
   def perform(%Job{} = job) do
     duration = :rand.uniform(2000)
-    IO.puts("[Worker] Starting job #{job.id} | type=#{job.type} | attempt=#{job.attempts + 1}/#{job.max_attempts} | will take #{duration}ms")
+    Bunt.puts([:white, "[Worker] Starting job #{job.id} | type=#{job.type} | attempt=#{job.attempts + 1}/#{job.max_attempts} | will take #{duration}ms"])
     Process.sleep(duration)
 
     if :rand.uniform(2) == 1 do
