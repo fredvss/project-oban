@@ -7,10 +7,10 @@ defmodule MiniOban.Worker do
     Process.sleep(duration)
 
     if :rand.uniform(2) == 1 do
-      IO.puts("[Worker] Job #{job.id} succeeded")
+      Bunt.puts([:green, "[Worker] Job #{job.id} succeeded"])
       :ok
     else
-      IO.puts("[Worker] Job #{job.id} failed")
+      Bunt.puts([:red, "[Worker] Job #{job.id} failed"])
       {:error, "random failure"}
     end
   end

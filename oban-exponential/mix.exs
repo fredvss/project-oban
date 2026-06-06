@@ -19,6 +19,8 @@ defmodule MiniOban.MixProject do
   end
 
   defp deps do
-    []
+    [
+      {:bunt, "~> 1.0"}
+    ]
   end
 end
