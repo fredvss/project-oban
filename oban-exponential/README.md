@@ -53,6 +53,10 @@ Process.send_after(self(), {:requeue, retry_job}, delay_ms)
 
 Quando o timer dispara, `{:requeue, job}` chega na caixa de mensagens e o `handle_info({:requeue, job})` o recoloca em `pending`. Isso evita marteleamento no serviço que está falhando.
 
+#### Backpressure em retries
+
+Durante o backoff, o job fica **fora** de `pending` e `running` — suspenso no timer do BEAM. Isso é backpressure temporal contra downstream degradado: a fila para de pressionar o serviço que falhou até o delay expirar. Combinado com `max_concurrency` (herdado do básico), há dois pontos de desaceleração: limite de execução paralela e espaçamento entre retentativas.
+
 | Tentativa | Fórmula | Espera |
 |-----------|---------|--------|
 | 1ª retry  | $2^1$   | 2s     |
@@ -72,6 +76,8 @@ children = [
 ```
 
 O `Supervisor.child_spec/2` com `id:` diferente é necessário porque o Supervisor usa o ID para identificar filhos — dois filhos com o mesmo módulo teriam o mesmo ID por padrão, gerando erro.
+
+Filas separadas com `max_concurrency` independente também isolam backpressure por domínio: jobs em `:critical` (1 slot) não competem por slots com a fila padrão (3 slots), evitando que carga bulk atrase trabalho prioritário.
 
 ### 3. `completed` e `get_report/1`
 

@@ -19,6 +19,7 @@ Repositório de estudo com duas implementações progressivas de uma fila de job
 - `Task.async` para execução concorrente com limite de slots
 - Monitoramento de processos com `Process.demonitor` e `handle_info({:DOWN, ...})`
 - Retry automático com recolocação na fila
+- Backpressure parcial via `max_concurrency` (limite de execução) e backoff em retries
 - Backoff exponencial com `Process.send_after/3`
 - Supervisão com `Supervisor` e estratégia `:one_for_one`
 - Múltiplas instâncias do mesmo GenServer com nomes diferentes

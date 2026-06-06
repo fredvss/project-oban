@@ -93,6 +93,12 @@ Calcula vagas disponíveis. Para cada vaga:
 
 `Task.async` é fundamental: a task é linkada ao GenServer (se a Queue morrer, a task morre também) **e** monitorada (o resultado da task, ou seu crash, chega como mensagem).
 
+#### Backpressure na execução
+
+O dispatch só inicia novas tasks enquanto `map_size(running) < max_concurrency`. Jobs que excedem esse limite permanecem em `pending` até um slot liberar — isso limita a pressão sobre workers e recursos externos (CPU, conexões, APIs).
+
+Isso é **backpressure parcial**: a desaceleração acontece na **execução**, não no enfileiramento. `queue_job/1` é um `cast` que sempre aceita jobs; `pending` não tem tamanho máximo e pode crescer em memória se o produtor enfileirar mais rápido do que a fila processa.
+
 ---
 
 ### 4. `handle_info({ref, result})` — task terminou normalmente
@@ -216,5 +222,7 @@ Quando um job falha (retorno `{:error, reason}` ou crash):
 
 - `attempts + 1 < max_attempts` → recolocado na fila com delay linear: `attempts × 1000ms` (1s, 2s, 3s…)
 - `attempts + 1 ≥ max_attempts` → movido para `completed` como `:failed`
+
+O delay entre tentativas é uma forma de **backpressure temporal**: enquanto o timer não dispara, o job não ocupa slot em `running` nem posição em `pending`, reduzindo carga sobre um serviço que está falhando.
 
 > Para backoff exponencial ($2^{\text{attempt}}$ segundos), veja [`oban-exponential`](../oban-exponential/).
