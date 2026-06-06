@@ -1,6 +1,6 @@
 # project-oban-exponential
 
-Evolução do [`project-oban-basic`](../project-oban-basic/) com três melhorias principais: **backoff exponencial** entre retentativas, **múltiplas filas nomeadas** com concorrências independentes e **relatório de jobs finalizados**.
+Evolução do [`oban-basic`](../oban-basic/) com três melhorias principais: **backoff exponencial** entre retentativas, **múltiplas filas nomeadas** com concorrências independentes e **relatório de jobs finalizados**.
 
 ---
 

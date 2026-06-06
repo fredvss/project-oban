@@ -1,9 +1,9 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
-/project-oban-basic/_build/
-/project-oban-basic/deps/
-/project-oban-exponential/_build/
-/project-oban-exponential/deps/
+/oban-basic/_build/
+/oban-basic/deps/
+/oban-exponential/_build/
+/oban-exponential/deps/
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/

@@ -8,8 +8,8 @@ Repositório de estudo com duas implementações progressivas de uma fila de job
 
 | Pasta | Descrição |
 |-------|-----------|
-| [`project-oban-basic/`](./project-oban-basic/) | Fila com concorrência controlada e retry imediato |
-| [`project-oban-exponential/`](./project-oban-exponential/) | Evolução com backoff exponencial, múltiplas filas nomeadas e relatório de jobs |
+| [`oban-basic/`](./oban-basic/) | Fila com concorrência controlada e retry imediato |
+| [`oban-exponential/`](./oban-exponential/) | Evolução com backoff exponencial, múltiplas filas nomeadas e relatório de jobs |
 
 ---
 

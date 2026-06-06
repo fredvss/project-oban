@@ -98,4 +98,4 @@ Quando um job falha (retorno `{:error, reason}` ou crash da Task):
 - `attempts + 1 < max_attempts` → recolocado no final da fila imediatamente com `attempts` incrementado
 - `attempts + 1 >= max_attempts` → descartado como falha permanente
 
-> O retry aqui é **imediato** — sem espera entre tentativas. Veja [`project-oban-exponential`](../project-oban-exponential/) para a versão com backoff exponencial.
+> O retry aqui é **imediato** — sem espera entre tentativas. Veja [`oban-exponential`](../oban-exponential/) para a versão com backoff exponencial.
