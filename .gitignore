@@ -1,5 +1,7 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
+/project-oban-basic/_build/
+/project-oban-basic/deps/
 /project-oban-exponential/_build/
 /project-oban-exponential/deps/
 
