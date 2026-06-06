@@ -3,6 +3,8 @@ defmodule MiniOban.Queue do
 
   alias MiniOban.{Job, Worker}
 
+  # state map: %{pending: [], running: %{}, max_concurrency: max_concurrency}
+
   # Client
 
   def start_link(opts \\ []) do
@@ -57,9 +59,8 @@ defmodule MiniOban.Queue do
       {to_run, remaining} = Enum.split(state.pending, slots)
 
       new_running =
-        Enum.reduce(to_run, state.running, fn job, running ->
-          started_job = %{job | status: :running, started_at: DateTime.utc_now()}
-          task = Task.async(fn -> Worker.perform(started_job) end)
+        Enum.reduce(to_run, state.running, fn (job, running) ->
+          task = Task.async(fn -> Worker.perform(job) end)
           IO.puts("[Queue] Dispatching job #{inspect(job.id)} | running=#{map_size(running) + 1}/#{state.max_concurrency}")
           Map.put(running, task.ref, started_job)
         end)
