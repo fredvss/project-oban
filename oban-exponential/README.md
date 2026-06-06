@@ -137,14 +137,62 @@ cd oban-exponential
 iex -S mix
 ```
 
-### Usando múltiplas filas
+### Fila padrão — `MiniOban.Queue` (3 slots paralelos)
 
 ```elixir
-# Fila padrão (3 slots)
-MiniOban.Queue.queue_job(%MiniOban.Job{type: :send_email, payload: %{}})
+for i <- 1..10 do
+  MiniOban.Queue.queue_job(%MiniOban.Job{
+    type: :send_email,
+    payload: %{to: "user#{i}@example.com"}
+  })
+end
+```
 
-# Fila crítica (1 slot — execução sequencial)
-MiniOban.Queue.queue_job(%MiniOban.Job{type: :billing, payload: %{}}, :critical)
+### Fila crítica — `:critical` (1 slot, execução sequencial)
+
+Útil para jobs que não podem rodar em paralelo (ex: cobranças, migrações):
+
+```elixir
+for i <- 1..5 do
+  MiniOban.Queue.queue_job(
+    %MiniOban.Job{type: :billing, payload: %{order_id: i}},
+    :critical
+  )
+end
+```
+
+### Ambas ao mesmo tempo
+
+```elixir
+# Jobs normais na fila padrão
+for i <- 1..10 do
+  MiniOban.Queue.queue_job(%MiniOban.Job{type: :send_email, payload: %{i: i}})
+end
+
+# Jobs críticos na fila dedicada
+for i <- 1..3 do
+  MiniOban.Queue.queue_job(
+    %MiniOban.Job{type: :billing, payload: %{order_id: i}, max_attempts: 5},
+    :critical
+  )
+end
+```
+
+### Inspecionando estado e relatório
+
+```elixir
+# Estado atual de cada fila
+MiniOban.Queue.get_state()           # fila padrão
+MiniOban.Queue.get_state(:critical)  # fila crítica
+
+# Relatório de jobs finalizados
+MiniOban.Queue.get_report()
+# %{
+#   success: [%MiniOban.Job{status: :success, ...}],
+#   failed:  [%MiniOban.Job{status: :failed,  ...}],
+#   total_success: 7,
+#   total_failed: 3
+# }
 ```
 
 ### Exemplo de output
