@@ -14,7 +14,7 @@ defmodule MiniOban.Queue do
 
   def queue_job(%Job{} = job, queue \\ __MODULE__) do
     job = %{job |
-      id: job.id || make_ref(),
+      id: job.id || System.unique_integer([:positive]),
       inserted_at: job.inserted_at || DateTime.utc_now()
     }
     GenServer.cast(queue, {:queue_job, job})
@@ -44,7 +44,7 @@ defmodule MiniOban.Queue do
   end
 
   def handle_cast({:queue_job, job}, state) do
-    IO.puts("[Queue] Queued job #{inspect(job.id)} | type=#{job.type}")
+    IO.puts("[Queue] Queued job #{job.id} | type=#{job.type}")
     new_state = %{state | pending: state.pending ++ [job]}
     send(self(), :dispatch)
     {:noreply, new_state}
@@ -62,7 +62,7 @@ defmodule MiniOban.Queue do
         Enum.reduce(to_run, state.running, fn (job, running) ->
           started_job = %{job | status: :running, started_at: DateTime.utc_now()}
           task = Task.async(fn -> Worker.perform(started_job) end)
-          IO.puts("[Queue] Dispatching job #{inspect(job.id)} | running=#{map_size(running) + 1}/#{state.max_concurrency}")
+          IO.puts("[Queue] Dispatching job #{job.id} | running=#{map_size(running) + 1}/#{state.max_concurrency}")
           Map.put(running, task.ref, started_job)
         end)
 
@@ -72,7 +72,7 @@ defmodule MiniOban.Queue do
 
   # Requeue agendado pelo backoff
   def handle_info({:requeue, job}, state) do
-    IO.puts("[Queue] Requeueing job #{inspect(job.id)} after backoff")
+    IO.puts("[Queue] Requeueing job #{job.id} after backoff")
     new_state = %{state | pending: state.pending ++ [job]}
     send(self(), :dispatch)
     {:noreply, new_state}
@@ -88,7 +88,7 @@ defmodule MiniOban.Queue do
     new_state =
       case result do
         :ok ->
-          IO.puts("[Queue] Job #{inspect(job.id)} succeeded | attempt=#{job.attempts + 1} | duration=#{duration_ms}ms")
+          IO.puts("[Queue] Job #{job.id} succeeded | attempt=#{job.attempts + 1} | duration=#{duration_ms}ms")
           finished_job = %{job | status: :success, finished_at: finished_at}
           %{state | running: new_running, completed: state.completed ++ [finished_job]}
 
@@ -96,11 +96,11 @@ defmodule MiniOban.Queue do
           if job.attempts + 1 < job.max_attempts do
             retry_job = %{job | attempts: job.attempts + 1, status: :pending, started_at: nil}
             delay_ms = retry_job.attempts * 1_000
-            IO.puts("[Queue] Job #{inspect(job.id)} failed (#{reason}) — retrying in #{delay_ms}ms (attempt #{retry_job.attempts}/#{retry_job.max_attempts})")
+            IO.puts("[Queue] Job #{job.id} failed (#{reason}) — retrying in #{delay_ms}ms (attempt #{retry_job.attempts}/#{retry_job.max_attempts})")
             Process.send_after(self(), {:requeue, retry_job}, delay_ms)
             %{state | running: new_running}
           else
-            IO.puts("[Queue] Job #{inspect(job.id)} permanently failed after #{job.attempts + 1} attempt(s)")
+            IO.puts("[Queue] Job #{job.id} permanently failed after #{job.attempts + 1} attempt(s)")
             finished_job = %{job | status: :failed, finished_at: finished_at}
             %{state | running: new_running, completed: state.completed ++ [finished_job]}
           end
@@ -119,11 +119,11 @@ defmodule MiniOban.Queue do
       if job.attempts + 1 < job.max_attempts do
         retry_job = %{job | attempts: job.attempts + 1, status: :pending, started_at: nil}
         delay_ms = retry_job.attempts * 1_000
-        IO.puts("[Queue] Job #{inspect(job.id)} crashed (#{inspect(reason)}) — retrying in #{delay_ms}ms (attempt #{retry_job.attempts}/#{retry_job.max_attempts})")
+        IO.puts("[Queue] Job #{job.id} crashed (#{inspect(reason)}) — retrying in #{delay_ms}ms (attempt #{retry_job.attempts}/#{retry_job.max_attempts})")
         Process.send_after(self(), {:requeue, retry_job}, delay_ms)
         %{state | running: new_running}
       else
-        IO.puts("[Queue] Job #{inspect(job.id)} crashed permanently after #{job.attempts + 1} attempt(s)")
+        IO.puts("[Queue] Job #{job.id} crashed permanently after #{job.attempts + 1} attempt(s)")
         finished_job = %{job | status: :failed, finished_at: finished_at}
         %{state | running: new_running, completed: state.completed ++ [finished_job]}
       end
