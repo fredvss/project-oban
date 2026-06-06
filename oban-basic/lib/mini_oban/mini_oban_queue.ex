@@ -62,7 +62,7 @@ defmodule MiniOban.Queue do
         Enum.reduce(to_run, state.running, fn (job, running) ->
           task = Task.async(fn -> Worker.perform(job) end)
           IO.puts("[Queue] Dispatching job #{inspect(job.id)} | running=#{map_size(running) + 1}/#{state.max_concurrency}")
-          Map.put(running, task.ref, started_job)
+          Map.put(running, task.ref, job)
         end)
 
       {:noreply, %{state | pending: remaining, running: new_running}}
