@@ -6,6 +6,8 @@ defmodule MiniOban.Queue do
 
   @name __MODULE__
 
+  # state map: %{pending: [], running: %{}, max_concurrency: max_concurrency}
+
   # Client
   def start_link(opts \\ []) do
     GenServer.start_link(@name, opts, name: @name)
@@ -43,7 +45,7 @@ defmodule MiniOban.Queue do
       {to_run, remaining} = Enum.split(state.pending, slots)
 
       new_running =
-        Enum.reduce(to_run, state.running, fn job, running ->
+        Enum.reduce(to_run, state.running, fn (job, running) ->
           task = Task.async(fn -> Worker.perform(job) end)
           IO.puts("[Queue] Dispatching job #{inspect(job.id)} | running=#{map_size(running) + 1}/#{state.max_concurrency}")
           Map.put(running, task.ref, %{job | status: :running})
